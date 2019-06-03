@@ -50,4 +50,9 @@ public interface CreateDB extends PassConnection {
 	}
 	
 	
+	default void createDB( String query) throws SQLException {		
+		excutePreparedStatement(query);
+	}
+	
+	
 }

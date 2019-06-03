@@ -81,11 +81,11 @@ public class CheckPW {
 		LocalDate date = LocalDate.now();
 		date = date.minusMonths(1);
 		StringBuilder query = new StringBuilder();
-		query.append("SELECT `ID` FROM `Session ID` WHERE `Token` = '");
+		query.append("SELECT `ID` FROM `Session ID` WHERE `token` = '");
 		query.append(token);
 //				Stream.of(token).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append));
 //		query.append("'");
-		query.append("' AND `last Login` <= '" + date + "'");
+		query.append("' AND `date created` >= '" + date + "'");
 
 		ServerGUI.print(query.toString());
 		List<Long> temp = null;
@@ -113,13 +113,15 @@ public class CheckPW {
 		ServerGUI.print("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'");
 		String algorithm = conn
 				.readStringDB("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'").get(0);
+		ServerGUI.print("algorithm is " + algorithm);
 		String hashedPW = conn.readStringDB("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'").get(0);
+		ServerGUI.print("hashedPW is " + hashedPW);
+		ServerGUI.print("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'");
 		String saltString = conn.readStringDB("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'")
 				.get(0);
-		int userID = conn.readIntDB("SELECT `user ID` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-		ServerGUI.print("algorithm is " + algorithm);
-		ServerGUI.print("hashedPW is " + hashedPW);
+		ServerGUI.print("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'");
 		ServerGUI.print("saltString is " + saltString);
+		int userID = conn.readIntDB("SELECT `user ID` FROM `users` WHERE `Email` ='" + user + "'").get(0);
 		ServerGUI.print("userID is " + userID);
 
 		sessionID = hash.checkPW(saltString, pw, hashedPW, algorithm);
@@ -141,16 +143,16 @@ public class CheckPW {
 		return returnObject;
 	}
 
-	public String generateToken(Long sessionID, int userID, String ipAddress) {
+	public String generateToken(Long sessionID, int userID, String ipAddress) throws SQLException {
 		SecureRandom secureRandom = new SecureRandom();
 		byte[] tokenByte = new byte[20];
 		secureRandom.nextBytes(tokenByte);
 		String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenByte);
 
-		StringBuilder query = new StringBuilder(
-				"INSERT INTO `Session ID`(`ID`, `user ID`, `last Login`, `token`, `date created`, `IP-adress`) VALUES ("
-						+ sessionID + "," + userID + "," + LocalDateTime.now() + "," + token + "," + LocalDateTime.now()
-						+ "," + ipAddress + ")");
+		String query = "INSERT INTO `Session ID`(`ID`, `user ID`, `last Login`, `token`, `date created`, `IP-adress`) VALUES ('"
+				+ sessionID + "','" + userID + "','" + LocalDateTime.now() + "','" + token + "','" + LocalDateTime.now()
+				+ "','" + ipAddress + "')";
+		conn.createDB(query);
 
 		return token;
 

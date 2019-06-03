@@ -24,9 +24,10 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import Server.ServerGUI;
+
 //import org.apache.commons.lang3.builder.ToStringBuilder;
 //import org.apache.commons.lang3.builder.ToStringStyle;
-
 
 public class Hash {
 	private static String PREFEREDALGORITHM = "SHA256";
@@ -49,8 +50,8 @@ public class Hash {
 		boolean loginValid = slowEquals(userGivenHashPW, hashPW);
 		temp.resetPassword();
 		Optional<Long> sessionID = Optional.ofNullable(null);
-		if(loginValid) {
-			sessionID= Optional.of(tokenHash());
+		if (loginValid) {
+			sessionID = Optional.of(tokenHash());
 		}
 
 //		Arrays.fill(salt, (byte) 0);
@@ -60,7 +61,7 @@ public class Hash {
 
 	private Password hashPW(String saltString, String algorithm, String username, char[] pw) {
 		HashAlgorithm hashAlgorithm = gatHashAlgorithm(algorithm);
-		byte[] salt = {0};
+		byte[] salt = { 0 };
 		if (saltString.length() == 0) {
 			try {
 				salt = hashAlgorithm.getSalt(username);
@@ -75,9 +76,8 @@ public class Hash {
 		temp.setSalt(salt);
 		String hashedPassword = hashAlgorithm.hashPW(salt, pw);
 		System.out.println("hashPW is " + hashedPassword);
-		
-		temp.setHashedPassword(hashedPassword);
 
+		temp.setHashedPassword(hashedPassword);
 
 		// for each hash algoritm run it
 		Arrays.fill(salt, (byte) 0);
@@ -109,8 +109,13 @@ public class Hash {
 
 	private boolean slowEquals(String a, String b) {
 		int diff = a.length() ^ b.length();
-		for (int i = 0; i < a.length() && i < b.length(); i++)
+		ServerGUI.print("a.length() ^ b.length() is " + (a.length() ^ b.length()));
+		for (int i = 0; i < a.length() && i < b.length(); i++) {
 			diff |= a.charAt(i) ^ b.charAt(i);
+			ServerGUI.print("a.charAt(i) ^ b.charAt(i) is " + (a.charAt(i) ^ b.charAt(i)));
+		}
+
+		ServerGUI.print("diff == 0 is " + (diff == 0));
 		return diff == 0;
 	}
 
@@ -118,11 +123,11 @@ public class Hash {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	private Long tokenHash() {
 		Long r = new Random().nextLong();
 		new Random();
-				
+
 		return r;
 	}
 

@@ -165,16 +165,23 @@ public class ServerOptions {
 			sessionID = returnObject.getSessionID();
 			ServerGUI.print("SessionID " + sessionID);
 			if (sessionID.isPresent()) {
-				token = cpw.getToken(sessionID.get());
+				token = returnObject.getToken();
+//						cpw.getToken(sessionID.get());
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		ServerGUI.print("sessionID.isPresent() is " + sessionID.isPresent());
+		ServerGUI.print("!token.isEmpty() is " + !token.isEmpty());
+		ServerGUI.print("sessionID.isPresent() && !token.isEmpty() is " + (sessionID.isPresent() && !token.isEmpty()));
 		if (sessionID.isPresent() && !token.isEmpty()) {
+			ServerGUI.print("Correct pw");
 			output.writeUTF("Correct pw");
+			ServerGUI.print(token);
 			output.writeUTF(token);
 		} else {
+			ServerGUI.print("wrong pw");
 			output.writeUTF("wrong pw");
 		}
 
