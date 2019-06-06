@@ -10,12 +10,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
-
-
 
 /**
  * start of the server side of the application. It does 2 things, beside
@@ -34,43 +33,53 @@ public class Server {
 	public void runServer() {
 		var test = true;
 		new Thread(() -> {
-			try (
+			try {
+				InetAddress addr = InetAddress.getLocalHost();
+				ServerGUI.print("InetAddress.getLocalHost() " + addr);
+				try (ServerSocket serverSocket = new ServerSocket(8002, 50, addr);
+						ServerSocket objectServerSocket = new ServerSocket(8001, 50, addr);) {
+
 					// Create a server socket
-					ServerSocket serverSocket = new ServerSocket(8002);
-					ServerSocket objectServerSocket = new ServerSocket(8001);) {
-				ServerGUI.print("#" + clientNo + " MultiThreadServer started at " + new Date());
+//						ServerSocket serverSocket = new ServerSocket(8002);
+//						ServerSocket objectServerSocket = new ServerSocket(8001);) {
+					ServerGUI.print("#" + clientNo + " MultiThreadServer started at " + new Date());
 
-				while (true) {
+					while (true) {
 
-					ServerGUI.print("#" + clientNo + " serverSocket.isClosed() " + serverSocket.isClosed());
+						ServerGUI.print("#" + clientNo + " serverSocket.isClosed() " + serverSocket.isClosed());
 
-					// Listen for a new connection request
-					Socket socket = serverSocket.accept();
-					Socket objectSocket = objectServerSocket.accept();
-					ServerGUI.print("#" + clientNo + " Socket.isClosed() " + socket.isClosed());
+						// Listen for a new connection request
+						Socket socket = serverSocket.accept();
+						Socket objectSocket = objectServerSocket.accept();
+						ServerGUI.print("#" + clientNo + " Socket.isClosed() " + socket.isClosed());
 
-					// Increment clientNo
-					clientNo++;
+						// Increment clientNo
+						clientNo++;
 
-					// Display the client number
-					ServerGUI.print("#" + clientNo + " Starting thread for client " + clientNo + " at " + new Date());
-					ServerGUI.print("#" + clientNo + " Amount of Threads active " + Thread.activeCount());
+						// Display the client number
+						ServerGUI.print(
+								"#" + clientNo + " Starting thread for client " + clientNo + " at " + new Date());
+						ServerGUI.print("#" + clientNo + " Amount of Threads active " + Thread.activeCount());
 
-					// Find the client's host name, and IP address
-					InetAddress inetAddress = socket.getInetAddress();
-					InetAddress inetAddressO = objectSocket.getInetAddress();
-					ServerGUI.print(
-							"#" + clientNo + " Client " + clientNo + "'s host name is " + inetAddress.getHostName());
-					ServerGUI.print("#" + clientNo + " Client " + clientNo + "'s IP Address is "
-							+ inetAddress.getHostAddress());
-					ServerGUI.print("#" + clientNo + " Object Client " + clientNo + "'s IP Address is "
-							+ inetAddressO.getHostAddress());
+						// Find the client's host name, and IP address
+						InetAddress inetAddress = socket.getInetAddress();
+						InetAddress inetAddressO = objectSocket.getInetAddress();
+						ServerGUI.print("#" + clientNo + " Client " + clientNo + "'s host name is "
+								+ inetAddress.getHostName());
+						ServerGUI.print("#" + clientNo + " Client " + clientNo + "'s IP Address is "
+								+ inetAddress.getHostAddress());
+						ServerGUI.print("#" + clientNo + " Object Client " + clientNo + "'s IP Address is "
+								+ inetAddressO.getHostAddress());
 
-					// Create and start a new thread for the connection
-					new Thread(new HandleAClient(socket, objectSocket)).start();
+						// Create and start a new thread for the connection
+						new Thread(new HandleAClient(socket, objectSocket)).start();
+					}
+				} catch (IOException ex) {
+					System.err.println(ex);
 				}
-			} catch (IOException ex) {
-				System.err.println(ex);
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}).start();
 	}
@@ -79,7 +88,7 @@ public class Server {
 	class HandleAClient implements Runnable {
 		private Socket socket; // A connected socket
 		private Socket objectSocket; // A connected socket
-		
+
 		String threadName;
 
 		/**
@@ -97,7 +106,7 @@ public class Server {
 
 		/** Run a thread */
 		public void run() {
-			ServerOptions options= new ServerOptions();
+			ServerOptions options = new ServerOptions();
 			ServerGUI.print(threadName + " in run()");
 //			 ConnectionToDB.createConn();
 //			ServerGUI.print("after ConnectionToDB.createConn()");
@@ -136,8 +145,8 @@ public class Server {
 //						break outer;
 						break;
 					case "ChangePW":
-						options.changePW(input,output,sessionID.get());
-						
+						options.changePW(input, output, sessionID.get());
+
 						break;
 					case "Close":
 					default:
@@ -159,8 +168,5 @@ public class Server {
 			}
 		}
 
-		
-
-		
 	}
 }
