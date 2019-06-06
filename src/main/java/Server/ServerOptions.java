@@ -68,10 +68,12 @@ public class ServerOptions {
 			ServerGUI.print("!sessionID.isPresent() " + !sessionID.isPresent());
 //			ServerGUI.print("sessionID.get() " + sessionID.get());
 
-			if (!sessionID.isPresent()) {
+			if (massage.equals("Welcome")) {
 				ServerGUI.print("Massage is " + massage);
 
 				output.writeUTF(massage);
+				output.writeUTF(returnObject.getToken());
+				
 				return Optional.ofNullable(null);
 			} else {
 				ServerGUI.print("sessionID " + sessionID.get());

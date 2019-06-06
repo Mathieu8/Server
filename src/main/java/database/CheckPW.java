@@ -134,6 +134,7 @@ public class CheckPW {
 		String token = "";
 		if (sessionID.isPresent()) {
 			token = generateToken(sessionID.get(), userID, ipAddress);
+			returnObject.setMessage("Welcome");
 		}
 
 		returnObject.setToken(token);
