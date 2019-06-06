@@ -7,14 +7,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * start of the server side of the application. It does 2 things, beside
@@ -30,12 +35,33 @@ public class Server {
 	// Number a client
 	private int clientNo = 0;
 
+	private String[] getHostAddresses() {
+		Set<String> HostAddresses = new HashSet<>();
+		try {
+			for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+				if (!ni.isLoopback() && ni.isUp() && ni.getHardwareAddress() != null) {
+					for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
+						if (ia.getBroadcast() != null) { // If limited to IPV4
+							HostAddresses.add(ia.getAddress().getHostAddress());
+						}
+					}
+				}
+			}
+		} catch (SocketException e) {
+		}
+		return HostAddresses.toArray(new String[0]);
+	}
+
 	public void runServer() {
 		var test = true;
 		new Thread(() -> {
 			try {
-				InetAddress addr = InetAddress.getLocalHost();
-				ServerGUI.print("InetAddress.getLocalHost() " + addr);
+				String[] addrs = getHostAddresses();
+				for (String b : addrs) {
+					ServerGUI.print("InetAddress.getLocalHost() " + b);
+				}
+
+				InetAddress addr = InetAddress.getByName(addrs[0]);
 				try (ServerSocket serverSocket = new ServerSocket(8002, 50, addr);
 						ServerSocket objectServerSocket = new ServerSocket(8001, 50, addr);) {
 
