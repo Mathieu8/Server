@@ -68,21 +68,19 @@ public class ServerOptions {
 			ServerGUI.print("!sessionID.isPresent() " + !sessionID.isPresent());
 //			ServerGUI.print("sessionID.get() " + sessionID.get());
 
+			output.writeUTF(massage);
 			if (massage.equals("Welcome")) {
-				ServerGUI.print("Massage is " + massage);
+				ServerGUI.print("token is " + returnObject.getToken());
 
-				output.writeUTF(massage);
 				output.writeUTF(returnObject.getToken());
 				
 				return Optional.ofNullable(null);
-			} else {
-				ServerGUI.print("sessionID " + sessionID.get());
-
-//			sessionID = cpw.checkPassword(username, pw);
-				token = cpw.getToken(sessionID.get());
+//			} else {
+//				ServerGUI.print("sessionID " + sessionID.get());
+//
+//				token = cpw.getToken(sessionID.get());
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (sessionID.isPresent() && !token.isEmpty()) {
