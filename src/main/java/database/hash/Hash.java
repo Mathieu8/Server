@@ -30,19 +30,23 @@ import Server.ServerGUI;
 //import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class Hash {
-	private static String PREFEREDALGORITHM = "SHA256";
+	private static String PREFERED_ALGORITHM = "SHA256";
 
 	public Password newPW(String username, char[] pw) {
+		System.out.println("in newPW("+username+" , pw)" );
 		Password temp = new Password();
-		temp = hashPW("", PREFEREDALGORITHM, username, pw);
+		temp = hashPW("", PREFERED_ALGORITHM, username, pw);
 
 		Arrays.fill(pw, '0');
-		temp.setHashedAlgorithm(PREFEREDALGORITHM);
+		temp.setHashedAlgorithm(PREFERED_ALGORITHM);
 		// TODO Auto-generated catch block
 		return temp;
 	}
+	
+
 
 	public Optional<Long> checkPW(String salt, char[] pw, String hashPW, String hashAlgorithm) {
+		
 		Password temp = hashPW(salt, hashAlgorithm, "", pw);
 		String userGivenHashPW = temp.getHashedPassword();
 		System.out.println("user given hashed PW " + userGivenHashPW);
@@ -60,6 +64,7 @@ public class Hash {
 	}
 
 	private Password hashPW(String saltString, String algorithm, String username, char[] pw) {
+		System.out.println("in hashPW(" + saltString+" , "+algorithm+" , "+username+ " , pw)");
 		HashAlgorithm hashAlgorithm = gatHashAlgorithm(algorithm);
 		byte[] salt = { 0 };
 		if (saltString.length() == 0) {
@@ -109,13 +114,19 @@ public class Hash {
 
 	private boolean slowEquals(String a, String b) {
 		int diff = a.length() ^ b.length();
-		ServerGUI.print("a.length() ^ b.length() is " + (a.length() ^ b.length()));
-		for (int i = 0; i < a.length() && i < b.length(); i++) {
-			diff |= a.charAt(i) ^ b.charAt(i);
-			ServerGUI.print("a.charAt(i) ^ b.charAt(i) is " + (a.charAt(i) ^ b.charAt(i)));
+//		System.out.println("a.length() ^ b.length() is " + (a.length() ^ b.length()));
+		try {
+			for (int i = 0; i < a.length() && i < b.length(); i++) {
+				Thread.sleep(1);
+				diff |= a.charAt(i) ^ b.charAt(i);
+//				System.out.println("a.charAt(i) ^ b.charAt(i) is " + (a.charAt(i) ^ b.charAt(i)));
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
-		ServerGUI.print("diff == 0 is " + (diff == 0));
+		System.out.println("diff == 0 is " + (diff == 0));
 		return diff == 0;
 	}
 

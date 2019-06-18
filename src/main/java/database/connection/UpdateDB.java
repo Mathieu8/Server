@@ -3,6 +3,8 @@ package database.connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import Server.ServerGUI;
+
 public interface UpdateDB extends PassConnection {
 	default void updateDB(String db, String[] fields, String[] data, String criteria) throws SQLException {
 		if (fields.length != data.length) {

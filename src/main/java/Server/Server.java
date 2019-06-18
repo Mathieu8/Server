@@ -145,6 +145,7 @@ public class Server {
 				Optional<Long> sessionID = Optional.empty();
 
 				outer: while (true) {
+					String ipAddress = socket.getInetAddress().getHostAddress();
 					ServerGUI.print("\n" + threadName + " running while again \n" + new Date());
 
 					ServerGUI.print(threadName + " input.available(): " + input.available());
@@ -158,7 +159,7 @@ public class Server {
 						break;
 					case "Password":
 						ServerGUI.print(threadName + " in password");
-						sessionID = options.checkPW(input, output, socket.getInetAddress().getHostAddress());
+						sessionID = options.checkPW(input, output, ipAddress);
 						break;
 					case "BasicMeasurements":
 						ServerGUI.print(threadName + " in measurements");
@@ -171,7 +172,7 @@ public class Server {
 //						break outer;
 						break;
 					case "ChangePW":
-						options.changePW(input, output, sessionID.get());
+						options.changePW(input, output, ipAddress, sessionID.get());
 
 						break;
 					case "Close":

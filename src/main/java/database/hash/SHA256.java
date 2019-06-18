@@ -43,7 +43,9 @@ public class SHA256 implements HashAlgorithm {
 			// Add password bytes to digest
 			md.update(salt);
 			// Get the hash's bytes
-			byte[] bytes = md.digest(pw.toString().getBytes());
+			byte[] input = toBytes(pw);
+			System.out.print("test");
+			byte[] bytes = md.digest(input);
 			Arrays.fill(pw, (char) 0); // clear sensitive data
 			// This bytes[] has bytes in decimal format;
 			// Convert it to hexadecimal format
@@ -62,24 +64,25 @@ public class SHA256 implements HashAlgorithm {
 
 	@Override
 	public byte[] returnSalt(String string) {
-		ArrayList<Byte> list1 = new ArrayList<>();
+		System.out.println("in returnSalt(" + string + ")");
+		ArrayList<Byte> tempArray = new ArrayList<>();
 		byte[] salt = new byte[16];
-		System.out.println(string);
+//		System.out.println(string);
 
 		StringBuilder temp = new StringBuilder(string);
 		for (int k = 0;;) {
 
 			int i = 0;
 			int j = temp.indexOf(",");
-			System.out.println("indexOf(,) is " + j);
-			System.out.println("stringbuilder so far " + temp);
+//			System.out.println("indexOf(,) is " + j);
+//			System.out.println("stringbuilder so far " + temp);
 
 			if (j == -1) {
 				break;
 			}
-			list1.add(Byte.valueOf(temp.substring(i, j)));
+			tempArray.add(Byte.valueOf(temp.substring(i, j)));
 
-			System.out.println("list1[" + k + "] is " + list1.get(k));
+//			System.out.println("list1[" + k + "] is " + tempArray.get(k));
 //			salt[k] = Byte.valueOf(temp.substring(i, j));
 //			System.out.println("salt["+k+"] is "+salt[k]);
 			k++;
@@ -87,15 +90,23 @@ public class SHA256 implements HashAlgorithm {
 			temp.delete(0, i + 1);
 
 		}
-		salt = Bytes.toArray(list1);
-		System.out.println("string is " + string);
-		System.out.print("   salt = ");
-		for (byte b : salt) {
-			System.out.print(b + ",");
-		}
-		System.out.println();
+		salt = Bytes.toArray(tempArray);
+//		System.out.println("string is " + string);
+//		System.out.print("   salt = ");
+//		for (byte b : salt) {
+//			System.out.print(b + ",");
+//		}
+//		System.out.println();
 
 		return salt;
+	}
+
+	private byte[] toBytes(char[] chars) {
+		CharBuffer charBuffer = CharBuffer.wrap(chars);
+		ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+		byte[] bytes = Arrays.copyOfRange(byteBuffer.array(), byteBuffer.position(), byteBuffer.limit());
+		Arrays.fill(byteBuffer.array(), (byte) 0); // clear sensitive data
+		return bytes;
 	}
 
 }

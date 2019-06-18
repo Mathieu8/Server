@@ -20,44 +20,35 @@ import database.hash.Hash;
 import database.hash.Password;
 import Server.ServerGUI;
 
-public class CheckPW {
+public class CheckLoginData {
 	private Hash hash = new Hash();
-	protected ConnectionToDB conn = null;
+	private ConnectionToDB conn = null;
 
-	public CheckPW(ConnectionToDB conn) {
+	public CheckLoginData(ConnectionToDB conn) {
 		this.conn = conn;
 	}
 
-	public ReturnObject changePW(char[] oldPW, char[] pw, long sessionID) {
+	private String returnUsername(long sessionID) throws SQLException {
+
+		ServerGUI.print("SELECT `ID` FROM `SessionID` WHERE `Email` ='" + sessionID + "'");
+		String ID = conn.readStringDB("SELECT `ID` FROM `SessionID` WHERE `Email` ='" + sessionID + "'").get(0);
+		ServerGUI.print("SELECT `email` FROM `users` WHERE `Email` ='" + ID + "'");
+		String email = conn.readStringDB("SELECT `email` FROM `users` WHERE `Email` ='" + ID + "'").get(0);
+
+		return email;
+	}
+
+	public ReturnObject changePW(char[] oldPW, char[] pw, long sessionID) throws SQLException {
 		ReturnObject returnObject = new ReturnObject();
 
-		try {
-			// get username from sessionID
-			Integer id;
-			String query = "SELECT `user ID` FROM `Session ID` WHERE `Token` = '" + sessionID + "'";
-			List<Integer> listID = conn.readIntDB(query);
-			if (listID.size() == 1) {
-				id = listID.get(0);
-			} else {
-				throw new ShouldBeOnlyOneException("Too much data returned");
-			}
+		String username = returnUsername(sessionID);
+		Password pwObject = hash.newPW(username, pw);
+		String hashedPW = pwObject.getHashedPassword();
+		String hashAlgorigthm = pwObject.getHashedAlgorithm();
+//		String salt = pwObject.getSalt()
 
-			query = "SELECT `Email` FROM `users` WHERE `user ID` = '" + id + "'";
-			List<String> listEmail = conn.readStringDB(query);
-			String user = "";
+//		conn.updateDB("users", fields, data, "");
 
-			if (listEmail.size() == 1) {
-				user = listEmail.get(0);
-			} else {
-				throw new ShouldBeOnlyOneException("Too much data returned");
-			}
-
-			// check oldPW
-			// insert new pw
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		return returnObject;
 
 	}
@@ -103,6 +94,19 @@ public class CheckPW {
 			throw new ShouldBeOnlyOneException("Too much data returned");
 		}
 		return returnObject;
+	}
+
+	public boolean checkPassword(String ipAddress, long sessionID, char... pw) throws SQLException {
+		// get username from sessionID
+		ServerGUI.print("in chechkPassword(SessionID)");
+		String email = returnUsername(sessionID);
+
+		// check PW
+
+		ReturnObject temp = checkPassword(ipAddress, email, pw);
+		// return true if PW is correct
+
+		return temp.getMessage().equals("Welcome");
 	}
 
 	public ReturnObject checkPassword(String ipAddress, String user, char... pw) throws SQLException {
@@ -193,6 +197,8 @@ public class CheckPW {
 
 		if (ids.size() == 0) {
 
+			var pw2 = duplicatePW(pw);
+
 			String[] fields = { "email", "password", "passwordSalt", "passwordHashAlgorithm" };
 			Password hashedPasswordData = hash.newPW(user, pw);
 			byte[] salt = hashedPasswordData.getSalt();
@@ -205,10 +211,19 @@ public class CheckPW {
 					hashedPasswordData.getHashedAlgorithm() };
 			conn.createDB("users", fields, data);
 
-			return checkPassword("", user, pw);
+			return checkPassword("", user, pw2);
 		} else {
 			returnObject.setMessage("username allready taken");
 		}
 		return returnObject;
+	}
+
+	private char[] duplicatePW(char[] pw) {
+		char[] temp = new char[pw.length];
+		for (int i = 0; i < pw.length; i++) {
+			temp[i] = pw[i];
+		}
+
+		return temp;
 	}
 }

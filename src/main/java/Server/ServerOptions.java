@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Optional;
 
-import database.CheckPW;
+import database.CheckLoginData;
 import database.ReturnObject;
 import database.SaveMethod;
 import database.connection.ConnectionToDB;
@@ -38,7 +38,7 @@ public class ServerOptions {
 	Optional<Long> sendNewAccount(DataInputStream input, DataOutputStream output) throws IOException {
 		ServerGUI.print("in checkPW()");
 		ConnectionToDB conn = ConnectionToDB.createConn();
-		CheckPW cpw = new CheckPW(conn);
+		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
 		ServerGUI.print("username is " + username);
 
@@ -97,7 +97,7 @@ public class ServerOptions {
 	Optional<Long> checkToken(DataInputStream input, DataOutputStream output) throws IOException {
 		ServerGUI.print("In CheckToken");
 		ConnectionToDB conn = ConnectionToDB.createConn();
-		CheckPW cpw = new CheckPW(conn);
+		CheckLoginData cpw = new CheckLoginData(conn);
 		var temp = "";
 		char[] token = readArray(input);
 		String date = "";
@@ -145,8 +145,8 @@ public class ServerOptions {
 
 	Optional<Long> checkPW(DataInputStream input, DataOutputStream output, String ipAddress) throws IOException {
 		ServerGUI.print("in checkPW()");
-		ConnectionToDB conn = ConnectionToDB.createConn();
-		CheckPW cpw = new CheckPW(conn);
+//		ConnectionToDB conn = ConnectionToDB.createConn();
+		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
 		ServerGUI.print("username is " + username);
 		char[] pw = readArray(input);
@@ -210,7 +210,7 @@ public class ServerOptions {
 		}
 	}
 
-	public void changePW(DataInputStream input, DataOutputStream output, long sessionID) throws IOException {
+	void changePW(DataInputStream input, DataOutputStream output, String ipAddress, long sessionID) throws IOException {
 		char[] oldPW = readArray(input);
 		char[] pw = readArray(input);
 		char[] pw2 = readArray(input);
@@ -220,7 +220,28 @@ public class ServerOptions {
 		if (!equal) {
 			output.writeUTF("different pw's");
 		}
+		
+		CheckLoginData cld = new CheckLoginData(conn);
+		
+		try {
+			boolean correctOldPW = cld.checkPassword(ipAddress, sessionID, oldPW);
+			
+			if(correctOldPW) {
+//				changePW(sessionID,pw);
+				
+				
+			} else {
+				output.writeUTF("wrong old PW");
+			}
+			
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
+
 
 }
