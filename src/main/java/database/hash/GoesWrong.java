@@ -11,8 +11,8 @@ public class GoesWrong {
 			pw[i] = tempPW.charAt(i);
 		}
 
-		String hashPW = "8c20698a992b8aa81e4190c633905b56d7e55a755ebc360aac9b4026ffc65d7b";
-		String saltString = "-28,-99,41,-30,102,-11,110,87,87,0,-90,-126,95,-57,26,-6,-18,-110,";
+		String hashPW = "4902a8d29ff09baae09b9e8d6276539838c35f00666f8cc3579a7480f503c4c5";
+		String saltString = "-32,-40,-17,-92,122,-95,-85,86,40,126,-37,-19,-65,-83,-20,118,-11,-67,45,66,";
 		
 		print(pw);
 

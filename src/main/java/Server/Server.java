@@ -53,7 +53,6 @@ public class Server {
 	}
 
 	public void runServer() {
-		var test = true;
 		new Thread(() -> {
 			try {
 				String[] addrs = getHostAddresses();
@@ -64,10 +63,6 @@ public class Server {
 				InetAddress addr = InetAddress.getByName(addrs[0]);
 				try (ServerSocket serverSocket = new ServerSocket(8002, 50, addr);
 						ServerSocket objectServerSocket = new ServerSocket(8001, 50, addr);) {
-
-					// Create a server socket
-//						ServerSocket serverSocket = new ServerSocket(8002);
-//						ServerSocket objectServerSocket = new ServerSocket(8001);) {
 					ServerGUI.print("#" + clientNo + " MultiThreadServer started at " + new Date());
 
 					while (true) {
@@ -98,7 +93,7 @@ public class Server {
 								+ inetAddressO.getHostAddress());
 
 						// Create and start a new thread for the connection
-						new Thread(new HandleAClient(socket, objectSocket)).start();
+						new Thread(new HandleAClient(this, socket, objectSocket)).start();
 					}
 				} catch (IOException ex) {
 					System.err.println(ex);
@@ -109,91 +104,10 @@ public class Server {
 			}
 		}).start();
 	}
+	
+	void clientNo() {
+		clientNo--;
+	}
 
 	// Define the thread class for handling new connection
-	class HandleAClient implements Runnable {
-		private Socket socket; // A connected socket
-		private Socket objectSocket; // A connected socket
-
-		String threadName;
-
-		/**
-		 * Construct a thread
-		 * 
-		 * @param socket
-		 * @param objectSocket
-		 */
-		public HandleAClient(Socket socket, Socket objectSocket) {
-			this.socket = socket;
-			this.objectSocket = objectSocket;
-			ServerGUI.print("in HandleClient()");
-
-		}
-
-		/** Run a thread */
-		public void run() {
-			ServerOptions options = new ServerOptions();
-			ServerGUI.print(threadName + " in run()");
-//			 ConnectionToDB.createConn();
-//			ServerGUI.print("after ConnectionToDB.createConn()");
-			// Create data input and output streams
-			try (DataInputStream input = new DataInputStream(socket.getInputStream());
-					DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-					ObjectInputStream inputFromClient = new ObjectInputStream(objectSocket.getInputStream());) {
-				socket.setSoTimeout(100000);
-
-				Optional<Long> sessionID = Optional.empty();
-
-				outer: while (true) {
-					String ipAddress = socket.getInetAddress().getHostAddress();
-					ServerGUI.print("\n" + threadName + " running while again \n" + new Date());
-
-					ServerGUI.print(threadName + " input.available(): " + input.available());
-					ServerGUI.print(threadName + " waiting for option");
-					String option = input.readUTF();
-					ServerGUI.print(threadName + " option is " + option);
-					switch (option) {
-					case "Token":
-						ServerGUI.print(threadName + " in token");
-						sessionID = options.checkToken(input, output);
-						break;
-					case "Password":
-						ServerGUI.print(threadName + " in password");
-						sessionID = options.checkPW(input, output, ipAddress);
-						break;
-					case "BasicMeasurements":
-						ServerGUI.print(threadName + " in measurements");
-						options.saveMeasurement(sessionID, inputFromClient);
-//						break outer;
-						break;
-					case "sendNewAccount":
-						ServerGUI.print(threadName + " in sendNewAccount");
-						sessionID = options.sendNewAccount(input, output);
-//						break outer;
-						break;
-					case "ChangePW":
-						options.changePW(input, output, ipAddress, sessionID.get());
-
-						break;
-					case "Close":
-					default:
-						ServerGUI.print(threadName + " Close");
-						break outer;
-					}
-
-				}
-			} catch (ClassNotFoundException | IOException e) {
-				ServerGUI.print("Error " + e);
-				e.printStackTrace();
-
-			} finally {
-				ServerGUI.print(threadName + " number of active threads: " + Thread.activeCount());
-
-				ServerGUI.print(threadName + " interrupting thread");
-				clientNo--;
-				Thread.interrupted();
-			}
-		}
-
-	}
 }

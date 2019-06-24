@@ -26,14 +26,21 @@ import java.util.stream.Stream;
 
 import Server.ServerGUI;
 
-//import org.apache.commons.lang3.builder.ToStringBuilder;
-//import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class Hash {
 	private static String PREFERED_ALGORITHM = "SHA256";
 
+	StringBuilder charToStringBuilder(char[] pw) {
+		StringBuilder temp = new StringBuilder();
+		for (char c : pw) {
+			temp.append(c);
+		}
+		// TODO delete this
+		return temp;
+	}
+
 	public Password newPW(String username, char[] pw) {
-		System.out.println("in newPW("+username+" , pw)" );
+		System.out.println("in newPW(" + username + " , " + charToStringBuilder(pw) + ")");
 		Password temp = new Password();
 		temp = hashPW("", PREFERED_ALGORITHM, username, pw);
 
@@ -42,15 +49,13 @@ public class Hash {
 		// TODO Auto-generated catch block
 		return temp;
 	}
-	
-
 
 	public Optional<Long> checkPW(String salt, char[] pw, String hashPW, String hashAlgorithm) {
-		
+
 		Password temp = hashPW(salt, hashAlgorithm, "", pw);
 		String userGivenHashPW = temp.getHashedPassword();
-		System.out.println("user given hashed PW " + userGivenHashPW);
-		System.out.println("DB given hashed PW   " + hashPW);
+//		System.out.println("user given hashed PW " + userGivenHashPW);
+//		System.out.println("DB given hashed PW   " + hashPW);
 		boolean loginValid = slowEquals(userGivenHashPW, hashPW);
 		temp.resetPassword();
 		Optional<Long> sessionID = Optional.ofNullable(null);
@@ -64,7 +69,7 @@ public class Hash {
 	}
 
 	private Password hashPW(String saltString, String algorithm, String username, char[] pw) {
-		System.out.println("in hashPW(" + saltString+" , "+algorithm+" , "+username+ " , pw)");
+		System.out.println("in hashPW(" + saltString + " , " + algorithm + " , " + username + " , " + charToStringBuilder(pw) + ")");
 		HashAlgorithm hashAlgorithm = gatHashAlgorithm(algorithm);
 		byte[] salt = { 0 };
 		if (saltString.length() == 0) {

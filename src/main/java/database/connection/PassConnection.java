@@ -20,6 +20,7 @@ public interface PassConnection {
 	}
 	
 	default ResultSet getResultSet(String query) throws SQLException {
+		ServerGUI.print(query);
 		PreparedStatement st = getConnection().prepareStatement(query);
 		ResultSet rs = st.executeQuery(query);
 		return rs;

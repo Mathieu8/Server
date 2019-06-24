@@ -16,7 +16,7 @@ public class Warnings {
 		} else {
 			ServerGUI.print('\n'+"warnings: ");
 			for (String w : warnings) {
-				ServerGUI.print(w);
+				ServerGUI.print(w.toString());
 			}
 			if (warnings.contains("Old Hash Method")) {
 				// force new PW

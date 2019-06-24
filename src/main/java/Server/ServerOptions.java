@@ -29,7 +29,7 @@ public class ServerOptions {
 //					ServerGUI.print(""+c[i]);
 			deleteThis += array[i];
 		}
-		ServerGUI.print("PW is " + deleteThis);
+		//serverGUI.print("PW is " + deleteThis);
 
 		return array;
 
@@ -40,14 +40,14 @@ public class ServerOptions {
 		ConnectionToDB conn = ConnectionToDB.createConn();
 		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
-		ServerGUI.print("username is " + username);
+//		ServerGUI.print("username is " + username);
 
 		char[] pw = readArray(input);
 
 		char[] pw2 = readArray(input);
 
 		boolean equal = Arrays.equals(pw, pw2);
-		ServerGUI.print("pw equals pw2 is " + equal);
+		//serverGUI.print("pw equals pw2 is " + equal);
 		if (!equal) {
 			output.writeUTF("different pw's");
 			return Optional.ofNullable(null);
@@ -64,13 +64,13 @@ public class ServerOptions {
 
 			String massage = returnObject.getMessage();
 			sessionID = returnObject.getSessionID();
-			ServerGUI.print("Massage is " + massage);
-			ServerGUI.print("!sessionID.isPresent() " + !sessionID.isPresent());
-//			ServerGUI.print("sessionID.get() " + sessionID.get());
+			//serverGUI.print("Massage is " + massage);
+			//serverGUI.print("!sessionID.isPresent() " + !sessionID.isPresent());
+//			//serverGUI.print("sessionID.get() " + sessionID.get());
 
 			output.writeUTF(massage);
 			if (massage.equals("Welcome")) {
-				ServerGUI.print("token is " + returnObject.getToken());
+				//serverGUI.print("token is " + returnObject.getToken());
 
 				output.writeUTF(returnObject.getToken());
 				
@@ -104,13 +104,13 @@ public class ServerOptions {
 		} catch (EOFException e) {
 			// do nothing
 			output.writeUTF("Wrong token");
-			ServerGUI.print("sending \"wrong token\"");
+			//serverGUI.print("sending \"wrong token\"");
 			output.flush();
 			return Optional.empty();
 
 		}
 
-		ServerGUI.print("date is " + date);
+		//serverGUI.print("date is " + date);
 
 		Optional<Long> sessionID = Optional.ofNullable(null);
 		try {
@@ -119,21 +119,21 @@ public class ServerOptions {
 			sessionID = returnObject.getSessionID();
 
 		} catch (SQLException e) {
-			ServerGUI.print(
-					"if exception is \"java.sql.SQLNonTransientConnectionException: Could not send query: Last packet not finished\". Check if the SQL DB is up");
+			//serverGUI.print(
+//					"if exception is \"java.sql.SQLNonTransientConnectionException: Could not send query: Last packet not finished\". Check if the SQL DB is up");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		token = null;
-		ServerGUI.print("Optional sessionID is " + sessionID.isPresent());
+		//serverGUI.print("Optional sessionID is " + sessionID.isPresent());
 		if (sessionID.isPresent()) {
 			output.writeUTF("Correct Token");
-			ServerGUI.print("sending \"Correct token\"");
+			//serverGUI.print("sending \"Correct token\"");
 			output.flush();
 			return sessionID;
 		} else {
 			output.writeUTF("Wrong token");
-			ServerGUI.print("sending \"wrong token\"");
+			//serverGUI.print("sending \"wrong token\"");
 			output.flush();
 			return Optional.empty();
 
@@ -146,7 +146,7 @@ public class ServerOptions {
 //		ConnectionToDB conn = ConnectionToDB.createConn();
 		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
-		ServerGUI.print("username is " + username);
+//		ServerGUI.print("username is " + username);
 		char[] pw = readArray(input);
 
 //		IntStream s = IntStream.of(t)
@@ -172,16 +172,16 @@ public class ServerOptions {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ServerGUI.print("sessionID.isPresent() is " + sessionID.isPresent());
-		ServerGUI.print("!token.isEmpty() is " + !token.isEmpty());
-		ServerGUI.print("sessionID.isPresent() && !token.isEmpty() is " + (sessionID.isPresent() && !token.isEmpty()));
+//		ServerGUI.print("sessionID.isPresent() is " + sessionID.isPresent());
+//		ServerGUI.print("!token.isEmpty() is " + !token.isEmpty());
+//		ServerGUI.print("sessionID.isPresent() && !token.isEmpty() is " + (sessionID.isPresent() && !token.isEmpty()));
 		if (sessionID.isPresent() && !token.isEmpty()) {
-			ServerGUI.print("Correct pw");
+//			ServerGUI.print("Correct pw");
 			output.writeUTF("Correct pw");
-			ServerGUI.print(token);
+//			ServerGUI.print(token);
 			output.writeUTF(token);
 		} else {
-			ServerGUI.print("wrong pw");
+//			ServerGUI.print("wrong pw");
 			output.writeUTF("wrong pw");
 		}
 
@@ -192,7 +192,7 @@ public class ServerOptions {
 	void saveMeasurement(Optional<Long> sessionID, ObjectInputStream inputFromClient)
 			throws ClassNotFoundException, IOException {
 		if (sessionID.isPresent()) {
-			ServerGUI.print(" reading object");
+			//serverGUI.print(" reading object");
 			// Continuously serve the client
 			BasicMeasurements object = (BasicMeasurements) inputFromClient.readObject();
 			ServerGUI.print(" read object");
@@ -208,13 +208,14 @@ public class ServerOptions {
 		}
 	}
 
-	void changePW(DataInputStream input, DataOutputStream output, String ipAddress, long sessionID) throws IOException {
+	void changePW(DataInputStream input, DataOutputStream output, String ipAddress) throws IOException {
+		String username = input.readUTF();
 		char[] oldPW = readArray(input);
 		char[] pw = readArray(input);
 		char[] pw2 = readArray(input);
 
 		boolean equal = Arrays.equals(pw, pw2);
-		ServerGUI.print("pw equals pw2 is " + equal);
+		//serverGUI.print("pw equals pw2 is " + equal);
 		if (!equal) {
 			output.writeUTF("different pw's");
 		}
@@ -222,10 +223,11 @@ public class ServerOptions {
 		CheckLoginData cld = new CheckLoginData(conn);
 		
 		try {
-			boolean correctOldPW = cld.checkPassword(ipAddress, sessionID, oldPW);
+			var returnObject = cld.checkPassword(ipAddress, username, oldPW);
+			boolean correctOldPW = returnObject.getSessionID().isPresent();
 			
 			if(correctOldPW) {
-//				changePW(sessionID,pw);
+				cld.insertNewPW(username, pw2);
 				
 				
 			} else {
