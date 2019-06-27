@@ -28,13 +28,14 @@ public class CheckLoginData {
 		this.conn = conn;
 	}
 
-	StringBuilder charToStringBuilder(char[] pw) {
+	String charToString(char[] pw) {
 		StringBuilder temp = new StringBuilder();
 		for (char c : pw) {
-			temp.append(c);
+			temp.append(c);			
 		}
+		ServerGUI.print("charToString() = " + temp);
 		// TODO delete this
-		return temp;
+		return temp.toString();
 	}
 
 	private String returnUsername(long sessionID) throws SQLException {
@@ -48,11 +49,11 @@ public class CheckLoginData {
 	}
 
 	public ReturnObject insertNewPW(String username, char[] pw) throws SQLException {
-		ServerGUI.print("in insertnewPW( " + username + " , " + charToStringBuilder(pw) + " )");
+		ServerGUI.print("in insertnewPW( " + username + " , " + charToString(pw)+ " )");
 		var pw2 = duplicatePW(pw);
 		Hash hash = new Hash();
 
-		String[] fields = { "email", "password", "passwordSalt", "passwordHashAlgorithm" };
+		String[] fields = { "password", "passwordSalt", "passwordHashAlgorithm" };
 		Password hashedPasswordData = hash.newPW(username, pw);
 		byte[] salt = hashedPasswordData.getSalt();
 		StringBuilder temp = new StringBuilder();
@@ -60,9 +61,10 @@ public class CheckLoginData {
 			temp.append(b + ",");
 		}
 
-		String[] data = { username, hashedPasswordData.getHashedPassword(), temp.toString(),
+		String[] data = { hashedPasswordData.getHashedPassword(), temp.toString(),
 				hashedPasswordData.getHashedAlgorithm() };
-		conn.createDB("users", fields, data);
+		conn.updateDB("users", fields, data, "`Email`= '" + username + "'");
+//		("users", fields, data);
 
 		return checkPassword("", username, pw2);
 
@@ -88,9 +90,7 @@ public class CheckLoginData {
 		date = date.minusMonths(1);
 		StringBuilder query = new StringBuilder();
 		query.append("SELECT `ID` FROM `Session ID` WHERE `token` = '");
-		query.append(token);
-//				Stream.of(token).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append));
-//		query.append("'");
+		query.append(charToString(token));
 		query.append("' AND `date created` >= '" + date + "'");
 
 		// serverGUI.print(query.toString());
@@ -113,7 +113,7 @@ public class CheckLoginData {
 
 	public boolean checkPassword(String ipAddress, long sessionID, char... pw) throws SQLException {
 		// get username from sessionID
-		ServerGUI.print("in chechkPassword(" + ipAddress + " , " + sessionID + " , " + charToStringBuilder(pw) + ")");
+		ServerGUI.print("in chechkPassword(" + ipAddress + " , " + sessionID + " , " + charToString(pw) + ")");
 		String email = returnUsername(sessionID);
 
 		// check PW
@@ -125,23 +125,24 @@ public class CheckLoginData {
 	}
 
 	public ReturnObject checkPassword(String ipAddress, String user, char... pw) throws SQLException {
-		ServerGUI.print("in checkPassword( " + ipAddress + " , " + user + " , " + charToStringBuilder(pw) + " ");
+		ServerGUI.print(
+				"in checkPassword( " + ipAddress + " , " + user + " , " + charToString(pw) + ") ");
 		ReturnObject returnObject = new ReturnObject();
 		Optional<Long> sessionID = Optional.ofNullable(null);
 
 //		ServerGUI.print("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'");
 		String algorithm = conn
 				.readStringDB("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-//		ServerGUI.print("algorithm is " + algorithm);
+		ServerGUI.print("algorithm is " + algorithm);
 		String hashedPW = conn.readStringDB("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-//		ServerGUI.print("hashedPW is " + hashedPW);
+		ServerGUI.print("hashedPW is " + hashedPW);
 //		ServerGUI.print("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'");
 		String saltString = conn.readStringDB("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'")
 				.get(0);
 //		ServerGUI.print("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'");
-//		ServerGUI.print("saltString is " + saltString);
+		ServerGUI.print("saltString is " + saltString);
 		int userID = conn.readIntDB("SELECT `user ID` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-//		ServerGUI.print("userID is " + userID);
+		ServerGUI.print("userID is " + userID);
 
 		sessionID = hash.checkPW(saltString, pw, hashedPW, algorithm);
 
@@ -194,21 +195,15 @@ public class CheckLoginData {
 	}
 
 	public ReturnObject newUser(String user, char[] pw) throws SQLException {
-		ServerGUI.print("in newUser( " + user + " , " + charToStringBuilder(pw) + ")");
+		ServerGUI.print("in newUser( " + user + " , " + charToString(pw) + ")");
 		String queryUsername = "SELECT `user ID` FROM `smtdb`.`users` WHERE `Email` ='" + user + "'";
-		// serverGUI.print(queryUsername);
-		// serverGUI.print("ResultSet.size() " + conn.readIntDB(queryUsername).size());
 
 		ReturnObject returnObject = new ReturnObject();
 
 		List<Integer> ids = conn.readIntDB(queryUsername);
 
-		// serverGUI.print("printing list of users with " + user + " as email");
-		for (int i : ids) {
-			// serverGUI.print("" + i);
-		}
-
 		if (ids.size() == 0) {
+			conn.createDB("users", "`email`='" + user + "'");
 
 			return insertNewPW(user, pw);
 		} else {

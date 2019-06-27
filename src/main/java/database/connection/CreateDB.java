@@ -44,7 +44,7 @@ public interface CreateDB extends PassConnection {
 	 */
 	default void createDB(String db, String data) throws SQLException {
 		
-		String query = "INSERT `smtdb`.`" + db + "` SET " + data + ";";
+		String query = "INSERT `" + db + "` SET " + data + ";";
 		
 		excutePreparedStatement(query);
 	}

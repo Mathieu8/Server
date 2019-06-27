@@ -57,43 +57,43 @@ public class Server {
 			try {
 				String[] addrs = getHostAddresses();
 				for (String b : addrs) {
-					ServerGUI.print("InetAddress.getLocalHost() " + b);
+					ServerGUI.print("Server: InetAddress.getLocalHost() " + b);
 				}
 
 				InetAddress addr = InetAddress.getByName(addrs[0]);
 				try (ServerSocket serverSocket = new ServerSocket(8002, 50, addr);
 						ServerSocket objectServerSocket = new ServerSocket(8001, 50, addr);) {
-					ServerGUI.print("#" + clientNo + " MultiThreadServer started at " + new Date());
+					ServerGUI.print("Server: #" + clientNo + " MultiThreadServer started at " + new Date());
 
 					while (true) {
 
-						ServerGUI.print("#" + clientNo + " serverSocket.isClosed() " + serverSocket.isClosed());
+						ServerGUI.print("Server: #" + clientNo + " serverSocket.isClosed() " + serverSocket.isClosed());
 
 						// Listen for a new connection request
 						Socket socket = serverSocket.accept();
 						Socket objectSocket = objectServerSocket.accept();
-						ServerGUI.print("#" + clientNo + " Socket.isClosed() " + socket.isClosed());
+						ServerGUI.print("Server: #" + clientNo + " Socket.isClosed() " + socket.isClosed());
 
 						// Increment clientNo
 						clientNo++;
 
 						// Display the client number
 						ServerGUI.print(
-								"#" + clientNo + " Starting thread for client " + clientNo + " at " + new Date());
-						ServerGUI.print("#" + clientNo + " Amount of Threads active " + Thread.activeCount());
+								"Server: #" + clientNo + " Starting thread for client " + clientNo + " at " + new Date());
+						ServerGUI.print("Server: #" + clientNo + " Amount of Threads active " + Thread.activeCount());
 
 						// Find the client's host name, and IP address
 						InetAddress inetAddress = socket.getInetAddress();
 						InetAddress inetAddressO = objectSocket.getInetAddress();
-						ServerGUI.print("#" + clientNo + " Client " + clientNo + "'s host name is "
+						ServerGUI.print("Server: #" + clientNo + " Client " + clientNo + "'s host name is "
 								+ inetAddress.getHostName());
-						ServerGUI.print("#" + clientNo + " Client " + clientNo + "'s IP Address is "
+						ServerGUI.print("Server: #" + clientNo + " Client " + clientNo + "'s IP Address is "
 								+ inetAddress.getHostAddress());
-						ServerGUI.print("#" + clientNo + " Object Client " + clientNo + "'s IP Address is "
+						ServerGUI.print("Server: #" + clientNo + " Object Client " + clientNo + "'s IP Address is "
 								+ inetAddressO.getHostAddress());
 
 						// Create and start a new thread for the connection
-						new Thread(new HandleAClient(this, socket, objectSocket)).start();
+						new Thread(new HandleAClient(clientNo,this, socket, objectSocket)).start();
 					}
 				} catch (IOException ex) {
 					System.err.println(ex);

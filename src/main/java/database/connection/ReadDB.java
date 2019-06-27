@@ -14,11 +14,10 @@ public interface ReadDB extends PassConnection {
 
 	public default List<String> readStringDB(String query) throws SQLException {
 		List<String> list = new ArrayList<String>();
+		ServerGUI.print("quetry = " + query);
 		if (checkConn()) {
-//			PreparedStatement st = getConnection().prepareStatement(query);
 			Statement st = getConnection().createStatement();
-//			st.execute(query, Statement.RETURN_GENERATED_KEYS);
-			ResultSet rs = st.executeQuery(query); // st.getGeneratedKeys();
+			ResultSet rs = st.executeQuery(query); 
 			int i = 1;
 			if (rs.next()) {
 				list.add(rs.getString(i++));
@@ -28,12 +27,16 @@ public interface ReadDB extends PassConnection {
 				throw new SQLException();
 			}
 		}
+		for(String i : list) {
+			ServerGUI.print(i+ "");
+		}
 		return list;
 	}
 
 	public default List<Integer> readIntDB(String query) throws SQLException {
 		List<Integer> list = new ArrayList<Integer>();
 		if (checkConn()) {
+			ServerGUI.print("quetry = " + query);
 			Statement st = getConnection().prepareStatement(query);
 //			Statement st = getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			ResultSet rs = st.executeQuery(query);
@@ -45,21 +48,16 @@ public interface ReadDB extends PassConnection {
 				list.add(rs.getInt(i++));
 			}
 		}
+		for(int i : list) {
+			ServerGUI.print(i+ "");
+		}
 		return list;
 
-//		Statement st = conn.createStatement();
-//		st.execute(query, Statement.RETURN_GENERATED_KEYS);
-//		int UID = -1;
-//
-//		ResultSet rs = st.getGeneratedKeys();
-//
-//		ServerGUI.print(rs.getRow());
-//		if (rs.next()) {
-//			UID = rs.getInt(1);
 	}
 
 	public default List<Long> readLongDB(String query) throws SQLException {
 		List<Long> list = new ArrayList<Long>();
+		ServerGUI.print("quetry = " + query);
 		if (checkConn()) {
 			Statement st = getConnection().prepareStatement(query);
 //			Statement st = getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -70,6 +68,9 @@ public interface ReadDB extends PassConnection {
 			while (rs.next()) {
 				list.add(rs.getLong(i++));
 			}
+		}
+		for(Long i : list) {
+			ServerGUI.print(i+ "");
 		}
 		return list;
 	}

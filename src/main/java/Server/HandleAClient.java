@@ -22,17 +22,18 @@ class HandleAClient implements Runnable {
 	 * @param socket
 	 * @param objectSocket
 	 */
-	public HandleAClient(Server server, Socket socket, Socket objectSocket) {
+	public HandleAClient(int threadName, Server server, Socket socket, Socket objectSocket) {
 		this.server = server;
 		this.socket = socket;
 		this.objectSocket = objectSocket;
-		ServerGUI.print("in HandleClient()");
+		ServerGUI.print("handleClient: in HandleClient()");
+		this.threadName = ""+threadName;
 
 	}
 
 	/** Run a thread */
 	public void run() {
-		ServerGUI.print(threadName + " in run()");
+		ServerGUI.print("handleClient: "+ threadName + " in run()");
 //		 ConnectionToDB.createConn();
 //		ServerGUI.print("after ConnectionToDB.createConn()");
 		// Create data input and output streams
@@ -43,20 +44,20 @@ class HandleAClient implements Runnable {
 
 			while (true) {
 				String ipAddress = socket.getInetAddress().getHostAddress();
-				ServerGUI.print("\n" + threadName + " running while again \n" + new Date());
+				ServerGUI.print("\nhandleClient: " + threadName + " running while again \n" + new Date());
 
-				ServerGUI.print(threadName + " input.available(): " + input.available());
-				ServerGUI.print(threadName + " waiting for option");
+				ServerGUI.print("handleClient: "+threadName + " input.available(): " + input.available());
+				ServerGUI.print("handleClient: "+threadName + " waiting for option");
 				String option = input.readUTF(); // TODO does this give an error when there is nothing available?
 
 				serverSwitch(option, ipAddress, input, output, objectInput);
 			}
 		} catch (ClassNotFoundException | IOException e) {
-			ServerGUI.print("Error " + e);
+			ServerGUI.print("handleClient: Error " + e);
 			e.printStackTrace();
 		} finally {
-			ServerGUI.print(threadName + " number of active threads: " + Thread.activeCount());
-			ServerGUI.print(threadName + " interrupting thread");
+			ServerGUI.print("handleClient: "+threadName + " number of active threads: " + Thread.activeCount());
+			ServerGUI.print("handleClient: "+threadName + " interrupting thread");
 			server.clientNo();
 			Thread.interrupted();
 		}
@@ -64,33 +65,33 @@ class HandleAClient implements Runnable {
 
 	private void serverSwitch(String option, String ipAddress, DataInputStream input, DataOutputStream output,
 			ObjectInputStream objectInput) throws ClassNotFoundException, IOException {
-		ServerGUI.print(threadName + " option is " + option);
+		ServerGUI.print("handleClient: "+threadName + " option is " + option);
 		switch (option) {
 		case "Token":
-			ServerGUI.print(threadName + " in token");
+			ServerGUI.print("handleClient: "+threadName + " in token");
 			sessionID = options.checkToken(input, output);
 			break;
 		case "Password":
-			ServerGUI.print(threadName + " in password");
+			ServerGUI.print("handleClient: "+threadName + " in password");
 			sessionID = options.checkPW(input, output, ipAddress);
 			break;
 		case "BasicMeasurements":
-			ServerGUI.print(threadName + " in measurements");
+			ServerGUI.print("handleClient: "+threadName + " in measurements");
 			options.saveMeasurement(sessionID, objectInput);
 //			break outer;
 			break;
 		case "sendNewAccount":
-			ServerGUI.print(threadName + " in sendNewAccount");
+			ServerGUI.print("handleClient: "+threadName + " in sendNewAccount");
 			sessionID = options.sendNewAccount(input, output);
 //			break outer;
 			break;
 		case "ChangePW":
-			ServerGUI.print(threadName + " in changePW");
+			ServerGUI.print("handleClient: "+threadName + " in changePW");
 			options.changePW(input, output, ipAddress);
 			break;
 		case "Close":
 		default:
-			ServerGUI.print(threadName + " Close");
+			ServerGUI.print("handleClient: "+threadName + " Close");
 			break;
 		}
 	}
