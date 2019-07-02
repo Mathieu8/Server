@@ -49,7 +49,7 @@ public class CheckLoginData {
 	}
 
 	public ReturnObject insertNewPW(String username, char[] pw) throws SQLException {
-		ServerGUI.print("in insertnewPW( " + username + " , " + charToString(pw)+ " )");
+		ServerGUI.print("CheckLoginData: in insertnewPW( " + username + " , " + charToString(pw)+ " )");
 		var pw2 = duplicatePW(pw);
 		Hash hash = new Hash();
 
@@ -64,7 +64,6 @@ public class CheckLoginData {
 		String[] data = { hashedPasswordData.getHashedPassword(), temp.toString(),
 				hashedPasswordData.getHashedAlgorithm() };
 		conn.updateDB("users", fields, data, "`Email`= '" + username + "'");
-//		("users", fields, data);
 
 		return checkPassword("", username, pw2);
 
@@ -113,7 +112,7 @@ public class CheckLoginData {
 
 	public boolean checkPassword(String ipAddress, long sessionID, char... pw) throws SQLException {
 		// get username from sessionID
-		ServerGUI.print("in chechkPassword(" + ipAddress + " , " + sessionID + " , " + charToString(pw) + ")");
+		ServerGUI.print("CheckLoginData: in chechkPassword(" + ipAddress + " , " + sessionID + " , " + charToString(pw) + ")");
 		String email = returnUsername(sessionID);
 
 		// check PW
@@ -121,28 +120,28 @@ public class CheckLoginData {
 		ReturnObject temp = checkPassword(ipAddress, email, pw);
 		// return true if PW is correct
 
-		return temp.getMessage().equals("Welcome");
+		return temp.getMessage().equals("welcome");
 	}
 
 	public ReturnObject checkPassword(String ipAddress, String user, char... pw) throws SQLException {
 		ServerGUI.print(
-				"in checkPassword( " + ipAddress + " , " + user + " , " + charToString(pw) + ") ");
+				"CheckLoginData: in checkPassword( " + ipAddress + " , " + user + " , " + charToString(pw) + ") ");
 		ReturnObject returnObject = new ReturnObject();
 		Optional<Long> sessionID = Optional.ofNullable(null);
 
 //		ServerGUI.print("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'");
 		String algorithm = conn
 				.readStringDB("SELECT `passwordHashAlgorithm` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-		ServerGUI.print("algorithm is " + algorithm);
+		ServerGUI.print("CheckLoginData: algorithm is " + algorithm);
 		String hashedPW = conn.readStringDB("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-		ServerGUI.print("hashedPW is " + hashedPW);
+		ServerGUI.print("CheckLoginData: hashedPW is " + hashedPW);
 //		ServerGUI.print("SELECT `password` FROM `users` WHERE `Email` ='" + user + "'");
 		String saltString = conn.readStringDB("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'")
 				.get(0);
 //		ServerGUI.print("SELECT `passwordSalt` FROM `users` WHERE `Email` ='" + user + "'");
-		ServerGUI.print("saltString is " + saltString);
+		ServerGUI.print("CheckLoginData: saltString is " + saltString);
 		int userID = conn.readIntDB("SELECT `user ID` FROM `users` WHERE `Email` ='" + user + "'").get(0);
-		ServerGUI.print("userID is " + userID);
+		ServerGUI.print("CheckLoginData: userID is " + userID);
 
 		sessionID = hash.checkPW(saltString, pw, hashedPW, algorithm);
 
@@ -154,7 +153,7 @@ public class CheckLoginData {
 		String token = "";
 		if (sessionID.isPresent()) {
 			token = generateToken(sessionID.get(), userID, ipAddress);
-			returnObject.setMessage("Welcome");
+			returnObject.setMessage("welcome");
 		}
 
 		returnObject.setToken(token);
@@ -195,7 +194,7 @@ public class CheckLoginData {
 	}
 
 	public ReturnObject newUser(String user, char[] pw) throws SQLException {
-		ServerGUI.print("in newUser( " + user + " , " + charToString(pw) + ")");
+		ServerGUI.print("CheckLoginData: in newUser( " + user + " , " + charToString(pw) + ")");
 		String queryUsername = "SELECT `user ID` FROM `smtdb`.`users` WHERE `Email` ='" + user + "'";
 
 		ReturnObject returnObject = new ReturnObject();

@@ -19,6 +19,11 @@ public class ServerOptions {
 	final ConnectionToDB conn = ConnectionToDB.createConn();
 	Warnings warnings = new Warnings();
 
+	private void sendStrings(String category, String message, DataOutputStream output) throws IOException {
+		output.writeUTF(category);
+		output.writeUTF(message);
+	}
+
 	private char[] readArray(DataInputStream input) throws IOException {
 		ServerGUI.print("ServerOptions : readArray");
 		int length = input.readInt();
@@ -27,9 +32,9 @@ public class ServerOptions {
 		char[] array = new char[length];
 
 		StringBuilder temp = new StringBuilder();
-		for (int i=0;i<length;i++) {
+		for (int i = 0; i < length; i++) {
 			var c = input.readChar();
-			array[i] =c;
+			array[i] = c;
 			temp.append(c);
 		}
 		ServerGUI.print("ServerOptions : array is " + temp.toString());
@@ -39,7 +44,7 @@ public class ServerOptions {
 	}
 
 	Optional<Long> sendNewAccount(DataInputStream input, DataOutputStream output) throws IOException {
-		ServerGUI.print("in checkPW()");
+		ServerGUI.print("ServerOptions: in checkPW()");
 		ConnectionToDB conn = ConnectionToDB.createConn();
 		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
@@ -67,7 +72,7 @@ public class ServerOptions {
 			sessionID = returnObject.getSessionID();
 
 			output.writeUTF(massage);
-			if (massage.equals("Welcome")) {
+			if (massage.equals("welcome")) {
 
 				output.writeUTF(returnObject.getToken());
 
@@ -79,7 +84,7 @@ public class ServerOptions {
 			e.printStackTrace();
 		}
 		if (sessionID.isPresent() && !token.isEmpty()) {
-			output.writeUTF("Welcome");
+			output.writeUTF("welcome");
 			output.writeUTF(token);
 		}
 
@@ -87,18 +92,17 @@ public class ServerOptions {
 	}
 
 	Optional<Long> checkToken(DataInputStream input, DataOutputStream output) throws IOException {
-		ServerGUI.print("In CheckToken");
+		ServerGUI.print("ServerOptions: In CheckToken");
 		ConnectionToDB conn = ConnectionToDB.createConn();
 		CheckLoginData cpw = new CheckLoginData(conn);
 		char[] token = readArray(input);
-
 
 		String date = "";
 		try {
 			date = input.readUTF();
 		} catch (EOFException e) {
 			// do nothing
-			output.writeUTF("Wrong token");
+			output.writeUTF("wrong token");
 			// serverGUI.print("sending \"wrong token\"");
 			output.flush();
 			return Optional.empty();
@@ -122,12 +126,12 @@ public class ServerOptions {
 		token = null;
 		// serverGUI.print("Optional sessionID is " + sessionID.isPresent());
 		if (sessionID.isPresent()) {
-			output.writeUTF("Correct Token");
+			output.writeUTF("correct token");
 			// serverGUI.print("sending \"Correct token\"");
 			output.flush();
 			return sessionID;
 		} else {
-			output.writeUTF("Wrong token");
+			output.writeUTF("wrong token");
 			// serverGUI.print("sending \"wrong token\"");
 			output.flush();
 			return Optional.empty();
@@ -137,13 +141,13 @@ public class ServerOptions {
 	}
 
 	Optional<Long> checkPW(DataInputStream input, DataOutputStream output, String ipAddress) throws IOException {
-		ServerGUI.print("in checkPW()");
+		ServerGUI.print("ServerOptions: in checkPW()");
 		CheckLoginData cpw = new CheckLoginData(conn);
 		String username = input.readUTF();
 		char[] pw = readArray(input);
-		
+
 		for (int i = 0; i < pw.length; i++) {
-			ServerGUI.print("pw " + pw[i]);
+			ServerGUI.print("ServerOptions: pw " + pw[i]);
 		}
 
 		// send back correct PW
@@ -163,8 +167,9 @@ public class ServerOptions {
 			e.printStackTrace();
 		}
 		if (sessionID.isPresent() && !token.isEmpty()) {
-			output.writeUTF("Correct pw");
-			output.writeUTF(token);
+			sendStrings("token", token, output);
+			output.writeUTF("correct pw");
+
 		} else {
 			output.writeUTF("wrong pw");
 		}
@@ -178,10 +183,9 @@ public class ServerOptions {
 			// serverGUI.print(" reading object");
 			// Continuously serve the client
 			BasicMeasurements object = (BasicMeasurements) inputFromClient.readObject();
-			ServerGUI.print(" read object");
-
-			ServerGUI.print(" TableName received from client: " + object.getTableName());
-			ServerGUI.print(" first item in the data set: " + object.toString());
+			ServerGUI.print("ServerOptions:  read object");
+			ServerGUI.print("ServerOptions:  TableName received from client: " + object.getTableName());
+			ServerGUI.print("ServerOptions:  first item in the data set: " + object.toString());
 
 			SaveMethod sm = new SaveMethod(conn);
 			sm.SaveData(object, sessionID.get());
@@ -192,33 +196,41 @@ public class ServerOptions {
 	}
 
 	void changePW(DataInputStream input, DataOutputStream output, String ipAddress) throws IOException {
-		String username = input.readUTF();
-		char[] oldPW = readArray(input);
-		char[] pw = readArray(input);
-		char[] pw2 = readArray(input);
+		inner: {
+			ServerGUI.print("ServerOptions: in changePW()");
 
-		boolean equal = Arrays.equals(pw, pw2);
-		// serverGUI.print("pw equals pw2 is " + equal);
-		if (!equal) {
-			output.writeUTF("different pw's");
-		}
+			String username = input.readUTF();
+			char[] oldPW = readArray(input);
+			char[] pw = readArray(input);
+			char[] pw2 = readArray(input);
 
-		CheckLoginData cld = new CheckLoginData(conn);
-
-		try {
-			var returnObject = cld.checkPassword(ipAddress, username, oldPW);
-			boolean correctOldPW = returnObject.getSessionID().isPresent();
-
-			if (correctOldPW) {
-				cld.insertNewPW(username, pw2);
-
-			} else {
-				output.writeUTF("wrong old PW");
+			boolean equal = Arrays.equals(pw, pw2);
+			if (!equal) {
+				output.writeUTF("different pw's");
+				break inner;
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 
+			CheckLoginData cld = new CheckLoginData(conn);
+
+			try {
+				var returnObject = cld.checkPassword(ipAddress, username, oldPW);
+				Optional<Long> sessionID = returnObject.getSessionID();
+				boolean correctOldPW = sessionID.isPresent();
+
+				if (correctOldPW) {
+					returnObject = cld.insertNewPW(username, pw2);
+					String message = returnObject.getMessage();
+					ServerGUI.print("ServerOptions: " + message);
+					sendStrings("token", returnObject.getToken(), output);
+					output.writeUTF(message);
+
+				} else {
+					output.writeUTF("wrong old PW");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

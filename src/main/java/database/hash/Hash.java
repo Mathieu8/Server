@@ -40,7 +40,7 @@ public class Hash {
 	}
 
 	public Password newPW(String username, char[] pw) {
-		System.out.println("in newPW(" + username + " , " + charToStringBuilder(pw) + ")");
+		System.out.println("Hash: in newPW(" + username + " , " + charToStringBuilder(pw) + ")");
 		Password temp = new Password();
 		temp = hashPW("", PREFERED_ALGORITHM, username, pw);
 
@@ -69,7 +69,7 @@ public class Hash {
 	}
 
 	private Password hashPW(String saltString, String algorithm, String username, char[] pw) {
-		System.out.println("in hashPW(" + saltString + " , " + algorithm + " , " + username + " , " + charToStringBuilder(pw) + ")");
+		System.out.println("Hash: in hashPW(" + saltString + " , " + algorithm + " , " + username + " , " + charToStringBuilder(pw) + ")");
 		HashAlgorithm hashAlgorithm = gatHashAlgorithm(algorithm);
 		byte[] salt = { 0 };
 		if (saltString.length() == 0) {
@@ -85,7 +85,7 @@ public class Hash {
 		Password temp = new Password();
 		temp.setSalt(salt);
 		String hashedPassword = hashAlgorithm.hashPW(salt, pw);
-		System.out.println("hashPW is " + hashedPassword);
+		System.out.println("Hash: hashPW is " + hashedPassword);
 
 		temp.setHashedPassword(hashedPassword);
 
@@ -99,10 +99,10 @@ public class Hash {
 		switch (hashAlgorithm) {
 		case "none":
 		case "test":
-			System.out.println("none or test");
+			System.out.println("Hash: none or test");
 			return new TestHashAlgorithm();
 		case "SHA256":
-			System.out.println("SHA256");
+			System.out.println("Hash: SHA256");
 			return new SHA256();
 
 		}
@@ -130,8 +130,10 @@ public class Hash {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("Hash: string a = " + a);
+		System.out.println("Hash: string b = " + b);
 
-		System.out.println("diff == 0 is " + (diff == 0));
+		System.out.println("Hash: diff == 0 is " + (diff == 0));
 		return diff == 0;
 	}
 
